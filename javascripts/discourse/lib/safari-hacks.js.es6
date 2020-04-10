@@ -83,6 +83,12 @@ function positioningWorkaround($fixedElement) {
     return;
   }
 
+  document.addEventListener("scroll", (e) => {
+    if (!caps.isIpadOS && workaroundActive) {
+      document.documentElement.scrollTop = 0;
+    }
+  });
+
   const fixedElement = $fixedElement[0];
   const oldHeight = fixedElement.style.height;
 
@@ -112,8 +118,9 @@ function positioningWorkaround($fixedElement) {
     // document.activeElement is also unreliable (iOS does not mark buttons as focused)
     // so instead, we store the last touched element and check against it
 
-    // cancel blur event if user is:
+    // cancel blur event when:
     // - switching to another iOS app
+    // - displaying title field
     // - invoking a select-kit dropdown
     // - invoking mentions
     // - invoking emoji dropdown via : and hitting return
@@ -122,6 +129,7 @@ function positioningWorkaround($fixedElement) {
     if (
       lastTouchedElement &&
       (document.visibilityState === "hidden" ||
+        $fixedElement.hasClass("edit-title") ||
         $(lastTouchedElement).hasClass("select-kit-header") ||
         $(lastTouchedElement).closest(".autocomplete").length ||
         (lastTouchedElement.nodeName.toLowerCase() === "textarea" &&
@@ -140,9 +148,14 @@ function positioningWorkaround($fixedElement) {
 
   var positioningHack = function (evt) {
     let _this = this;
+
     if (evt === undefined) {
       evt = new CustomEvent("no-op");
     }
+
+    // if (_this === document.activeElement) {
+    //   return;
+    // }
 
     // we need this, otherwise changing focus means we never clear
     this.addEventListener("blur", blurred);
@@ -154,36 +167,26 @@ function positioningWorkaround($fixedElement) {
       .find(".select-kit > button.is-focused")
       .removeClass("is-focused");
 
-    if ($(window).scrollTop() > 0) {
-      originalScrollTop = $(window).scrollTop();
-    }
+    originalScrollTop = $(window).scrollTop();
 
     const elementRect = _this.getBoundingClientRect();
-
-    if (elementRect.top > 100 && _this.nodeName.toLowerCase() === "textarea") {
+    if (elementRect.top > 100) {
       // this tricks iOS safari into assuming input/textarea is at top of the viewport
       // via https://stackoverflow.com/questions/38017771/mobile-safari-prevent-scroll-page-when-focus-on-input
-      _this.style.transform = "translateY(-9999px)";
+      _this.style.transform = "translateY(-400px)";
       setTimeout(function () {
         _this.style.transform = "none";
       }, 30);
     }
 
-    // slower on iPads, so hardware keyboard checking can work better
-    const delay = caps.isIpadOS ? 350 : 100;
-
+    let delay = caps.isIpadOS ? 350 : 150;
     setTimeout(function () {
-      if (caps.isIpadOS && isiOSWithVisualViewport()) {
+      if (caps.isIpadOS && iOSWithVisualViewport()) {
         // disable hacks when using a hardware keyboard
         // by default, a hardware keyboard will show the keyboard accessory bar
         // whose height is currently 55px (using 75 for a bit of a buffer)
         let heightDiff = window.innerHeight - window.visualViewport.height;
-
         if (heightDiff < 75) {
-          $("html, body").animate(
-            { scrollTop: originalScrollTop + heightDiff },
-            "fast"
-          );
           return;
         }
       }

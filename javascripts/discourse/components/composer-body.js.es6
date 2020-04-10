@@ -157,28 +157,23 @@ export default Component.extend(KeyEnterEscape, {
       `${composerVH}px`
     );
 
-    // const viewportWindowDiff =
-    //   window.innerHeight - window.visualViewport.height;
-
-    // if (viewportWindowDiff > 0) {
-    //   document.documentElement.classList.add("keyboard-visible");
-    // } else {
-    //   document.documentElement.classList.remove("keyboard-visible");
-    // }
+    const viewportWindowDiff =
+      window.innerHeight - window.visualViewport.height;
 
     // adds bottom padding when using a hardware keyboard and the accessory bar is visible
     // accessory bar height is 55px, using 75 allows a small buffer
-    // if (viewportWindowDiff > 0 && viewportWindowDiff < 75) {
-    //   document.documentElement.style.setProperty(
-    //     "--composer-ipad-padding",
-    //     `${viewportWindowDiff}px`
-    //   );
-    // } else {
-    //   document.documentElement.style.setProperty(
-    //     "--composer-ipad-padding",
-    //     "0px"
-    //   );
-    // }
+
+    if (viewportWindowDiff > 0 && viewportWindowDiff < 75) {
+      document.documentElement.style.setProperty(
+        "--composer-ipad-padding",
+        `${viewportWindowDiff}px`
+      );
+    } else {
+      document.documentElement.style.setProperty(
+        "--composer-ipad-padding",
+        "0px"
+      );
+    }
   },
 
   didInsertElement() {
