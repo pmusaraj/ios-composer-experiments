@@ -158,24 +158,32 @@ function positioningWorkaround($fixedElement) {
       originalScrollTop = $(window).scrollTop();
     }
 
-    if (!caps.isIpadOS && _this.nodeName.toLowerCase() === "textarea") {
-      // this tricks iOS safari into assuming textarea is at top of the viewport
+    const elementRect = _this.getBoundingClientRect();
+
+    if (elementRect.top > 100 && _this.nodeName.toLowerCase() === "textarea") {
+      // this tricks iOS safari into assuming input/textarea is at top of the viewport
       // via https://stackoverflow.com/questions/38017771/mobile-safari-prevent-scroll-page-when-focus-on-input
-      _this.style.transform = "translateY(-400px)";
+      _this.style.transform = "translateY(-9999px)";
       setTimeout(function () {
         _this.style.transform = "none";
       }, 30);
     }
 
+    // slower on iPads, so hardware keyboard checking can work better
+    const delay = caps.isIpadOS ? 350 : 100;
+
     setTimeout(function () {
-      if (iOSWithVisualViewport()) {
+      if (caps.isIpadOS && isiOSWithVisualViewport()) {
         // disable hacks when using a hardware keyboard
         // by default, a hardware keyboard will show the keyboard accessory bar
         // whose height is currently 55px (using 75 for a bit of a buffer)
         let heightDiff = window.innerHeight - window.visualViewport.height;
 
         if (heightDiff < 75) {
-          window.scrollBy(0, heightDiff);
+          $("html, body").animate(
+            { scrollTop: originalScrollTop + heightDiff },
+            "fast"
+          );
           return;
         }
       }
@@ -197,7 +205,7 @@ function positioningWorkaround($fixedElement) {
       evt.preventDefault();
       _this.focus();
       workaroundActive = true;
-    }, 350);
+    }, delay);
   };
 
   var lastTouched = function (evt) {
