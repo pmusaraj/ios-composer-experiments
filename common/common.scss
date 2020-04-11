@@ -1,0 +1,9 @@
+#reply-control {
+  body.ios-safari-composer-hacks &.open .reply-area {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .keyboard-visible body.ios-safari-composer-hacks &.open .reply-area {
+    padding-bottom: 0px;
+  }
+}

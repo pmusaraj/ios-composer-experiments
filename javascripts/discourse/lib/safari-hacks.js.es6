@@ -98,18 +98,16 @@ function positioningWorkaround($fixedElement) {
   positioningWorkaround.blur = function (evt) {
     if (workaroundActive) {
       $("body").removeClass("ios-safari-composer-hacks");
+      $(window).scrollTop(originalScrollTop);
+      if (evt && evt.target) {
+        evt.target.removeEventListener("blur", blurred);
+      }
+      workaroundActive = false;
 
       if (!iOSWithVisualViewport()) {
         fixedElement.style.height = oldHeight;
         later(() => $(fixedElement).removeClass("no-transition"), 500);
       }
-
-      $(window).scrollTop(originalScrollTop);
-
-      if (evt) {
-        evt.target.removeEventListener("blur", blurred);
-      }
-      workaroundActive = false;
     }
   };
 
@@ -152,10 +150,6 @@ function positioningWorkaround($fixedElement) {
     if (evt === undefined) {
       evt = new CustomEvent("no-op");
     }
-
-    // if (_this === document.activeElement) {
-    //   return;
-    // }
 
     // we need this, otherwise changing focus means we never clear
     this.addEventListener("blur", blurred);
